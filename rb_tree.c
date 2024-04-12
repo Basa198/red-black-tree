@@ -139,4 +139,56 @@ void insert(RBtree* tree, int value) {
     } 
 }
 
-void delete_node(RBtree*, int target) {}
+void delete_node(RBtree* tree, int target) {
+    if (!tree) return;
+
+    RBnode* node_to_remove = search(tree, target);
+    if (!node_to_remove) return;
+
+    if (node_to_remove->_left && node_to_remove->_right) { // if two non-NULL children
+        // find the inorder successor of the node
+        // inorder successor will be the leftmost child of the right subtree
+        RBnode* inorder_successor = node_to_remove->_right;
+        while (inorder_successor->_left) {
+            inorder_successor = inorder_successor->_left;
+        }
+        node_to_remove->_key = inorder_successor->_key;
+        // delete the inorder successor
+        if (inorder_successor->_parent == node_to_remove) {
+            node_to_remove->_right = inorder_successor->_right;;
+        } else {
+            inorder_successor->_parent->_left = inorder_successor->_right;
+        }
+        inorder_successor->_parent = NULL;
+        free(inorder_successor);
+        return;  
+    }
+    if (node_to_remove->_left || node_to_remove->_right) { // if it has only one child
+        // replace the parent with the child
+        int dir = node_to_remove->_left ? LEFT : RIGHT;
+        node_to_remove->_child[dir]->_parent = node_to_remove->_parent;
+        if (node_to_remove->_parent) { 
+            int parent_dir = node_to_remove->_parent->_left == node_to_remove ? LEFT : RIGHT;
+            node_to_remove->_parent->_child[parent_dir] = node_to_remove->_child[dir];
+        } else {
+            tree->_root = node_to_remove->_child[dir];
+        }
+        free(node_to_remove);
+        return;
+    }
+    // from here on, the node has no children
+    if (tree->_root == node_to_remove) {
+        tree->_root = NULL;
+        free(node_to_remove);
+        return;
+    }
+    if (node_to_remove->_color == RED) {
+        // the node is NOT root (i.e has a parent)
+        int dir = node_to_remove->_parent->_left == node_to_remove ? LEFT : RIGHT;
+        node_to_remove->_parent->_child[dir] = NULL;
+        free(node_to_remove);
+        return;
+    }
+    // node has no children and is black
+    // if we simply delete it, it will violate the black depth property
+}
