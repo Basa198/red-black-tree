@@ -141,6 +141,13 @@ void insert(RBtree* tree, int value) {
     } 
 }
 
+void case_d6(RBtree* tree, RBnode* parent, RBnode* sibling, RBnode* distant_nephew, int dir) {
+    rotate_dir_root(tree, parent, dir);
+    sibling->_color = parent->_color;
+    parent->_color = BLACK;
+    distant_nephew->_color = BLACK; 
+}
+
 void delete_node(RBtree* tree, int target) {
     if (!tree) return;
 
@@ -210,10 +217,7 @@ void delete_node(RBtree* tree, int target) {
             close_nephew = sibling->_child[dir];
         } // sibling is black
         if (distant_nephew && distant_nephew->_color == RED) {
-            rotate_dir_root(tree, parent, dir);
-            sibling->_color = parent->_color;
-            parent->_color = BLACK;
-            distant_nephew->_color = BLACK;
+            case_d6(tree, parent, sibling, distant_nephew, dir);
             return;
         } // sibling is black, distant nephew is black
         if (close_nephew && close_nephew->_color == RED) {
@@ -223,10 +227,7 @@ void delete_node(RBtree* tree, int target) {
             distant_nephew = sibling;
             sibling = close_nephew;
 
-            rotate_dir_root(tree, parent, dir);
-            sibling->_color = parent->_color;
-            parent->_color = BLACK;
-            distant_nephew->_color = BLACK;
+            case_d6(tree, parent, sibling, distant_nephew, dir);
             return;
         } // sibling, close_nephew, distant_nephew are black
         if (parent->_color == RED) {
