@@ -39,6 +39,8 @@ RBnode* create_rb_node(int key, rb_color color) {
 }
 
 RBnode* rotate_dir_root(RBtree* tree, RBnode* parent_node, int dir) {
+    // rotate parent_node and parent_node->_child[1 - dir] so that
+    // the child becomes the parent of the parent_node
     RBnode* grandparent_node = parent_node->_parent;
     RBnode* child_node = parent_node->_child[1 - dir];
     RBnode* adopted_child = child_node->_child[dir];
@@ -146,27 +148,22 @@ void delete_node(RBtree* tree, int target) {
     if (!node_to_remove) return;
 
     if (node_to_remove->_left && node_to_remove->_right) { // if two non-NULL children
-        // find the inorder successor of the node
+        // find the inorder successor of the node, switch keys and delete inorder successor
         // inorder successor will be the leftmost child of the right subtree
         RBnode* inorder_successor = node_to_remove->_right;
         while (inorder_successor->_left) {
             inorder_successor = inorder_successor->_left;
         }
-        node_to_remove->_key = inorder_successor->_key;
-        // delete the inorder successor
-        if (inorder_successor->_parent == node_to_remove) {
-            node_to_remove->_right = inorder_successor->_right;;
-        } else {
-            inorder_successor->_parent->_left = inorder_successor->_right;
-        }
-        inorder_successor->_parent = NULL;
-        free(inorder_successor);
-        return;  
+        int key = inorder_successor->_key;
+        delete_node(tree, key);
+        node_to_remove->_key = key;
+        return;
     }
     if (node_to_remove->_left || node_to_remove->_right) { // if it has only one child
         // replace the parent with the child
         int dir = node_to_remove->_left ? LEFT : RIGHT;
         node_to_remove->_child[dir]->_parent = node_to_remove->_parent;
+        node_to_remove->_child[dir]->_color = BLACK;
         if (node_to_remove->_parent) { 
             int parent_dir = node_to_remove->_parent->_left == node_to_remove ? LEFT : RIGHT;
             node_to_remove->_parent->_child[parent_dir] = node_to_remove->_child[dir];
@@ -183,6 +180,7 @@ void delete_node(RBtree* tree, int target) {
         return;
     }
     if (node_to_remove->_color == RED) {
+        // red leaf
         // the node is NOT root (i.e has a parent)
         int dir = node_to_remove->_parent->_left == node_to_remove ? LEFT : RIGHT;
         node_to_remove->_parent->_child[dir] = NULL;
@@ -191,4 +189,57 @@ void delete_node(RBtree* tree, int target) {
     }
     // node has no children and is black
     // if we simply delete it, it will violate the black depth property
+    RBnode* parent = node_to_remove->_parent;
+    int dir = parent->_left == node_to_remove ? LEFT : RIGHT;
+    RBnode* sibling;
+    RBnode* close_nephew;
+    RBnode* distant_nephew;
+    parent->_child[dir] = NULL;
+    free(node_to_remove);
+    
+    while (parent) {
+        sibling = parent->_child[1 - dir];
+        close_nephew = sibling->_child[dir];
+        distant_nephew = sibling->_child[1 - dir];
+        if (sibling->_color == RED) { 
+            rotate_dir_root(tree, parent, dir);
+            parent->_color = RED;
+            sibling->_color = BLACK;
+            sibling = close_nephew;
+            distant_nephew = sibling->_child[1 - dir];
+            close_nephew = sibling->_child[dir];
+        } // sibling is black
+        if (distant_nephew && distant_nephew->_color == RED) {
+            rotate_dir_root(tree, parent, dir);
+            sibling->_color = parent->_color;
+            parent->_color = BLACK;
+            distant_nephew->_color = BLACK;
+            return;
+        } // sibling is black, distant nephew is black
+        if (close_nephew && close_nephew->_color == RED) {
+            rotate_dir_root(tree, sibling, 1 - dir);
+            sibling->_color = RED;
+            close_nephew->_color = BLACK;
+            distant_nephew = sibling;
+            sibling = close_nephew;
+
+            rotate_dir_root(tree, parent, dir);
+            sibling->_color = parent->_color;
+            parent->_color = BLACK;
+            distant_nephew->_color = BLACK;
+            return;
+        } // sibling, close_nephew, distant_nephew are black
+        if (parent->_color == RED) {
+            sibling->_color = RED;
+            parent->_color = BLACK;
+            return;
+        } // parent, sibling, close_nephew, distant_nephew are black
+
+        sibling->_color = RED;
+        node_to_remove = parent;
+        parent = node_to_remove->_parent;        
+        if (parent) {
+            dir = parent->_left == node_to_remove ? LEFT : RIGHT;
+        }
+    }
 }

@@ -53,6 +53,7 @@ bool is_red_black(RBtree* tree) {
     if (!tree) return true;
     if (!_red_property(tree->_root)) return false;
     int height = 0;
+    printf("A\n");
     if (!_black_depth(tree->_root, &height)) return false;
     // int shortest_path = find_shortest_path(tree->_root);
     // int longest_path = find_longest_path(tree->_root);
@@ -161,6 +162,18 @@ void test_delete_node() {
     delete_node(tree, 1);
     CU_ASSERT_PTR_NULL(search(tree, 1));
     CU_ASSERT_TRUE(is_red_black(tree));
+    delete_node(tree, 0);
+    CU_ASSERT_PTR_NULL(search(tree, 0));
+    CU_ASSERT_TRUE(is_red_black(tree));
+    delete_node(tree, -5);
+    CU_ASSERT_PTR_NULL(search(tree, -5));
+    CU_ASSERT_TRUE(is_red_black(tree));
+    delete_node(tree, 5);
+    CU_ASSERT_PTR_NULL(search(tree, 5));
+    CU_ASSERT_TRUE(is_red_black(tree));
+    delete_node(tree, 6);
+    CU_ASSERT_PTR_NULL(search(tree, 6));
+    CU_ASSERT_TRUE(is_red_black(tree));
 
     free_rb_tree(tree);
 }
@@ -175,7 +188,7 @@ int main() {
     CU_add_test(suite, "test_free_rb_tree", test_free_rb_tree);
     CU_add_test(suite, "test_insert", test_insert);
     CU_add_test(suite, "test_search", test_search);
-    // CU_add_test(suite, "test_delete_node", test_delete_node);
+    CU_add_test(suite, "test_delete_node", test_delete_node);
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
