@@ -69,7 +69,7 @@ RBtree* create_rb_tree() {
     return tree;
 }
 
-RBnode* search(RBtree* tree, int target) {
+RBnode* rb_search(RBtree* tree, int target) {
     if (!tree) return NULL;
 
     RBnode* node = tree->_root;
@@ -92,31 +92,31 @@ void free_rb_tree(RBtree* tree) {
     free(tree);
 }
 
-void insert(RBtree* tree, int value) {
+bool rb_insert(RBtree* tree, int value) {
     if (!tree) {
         fprintf(stderr, "Invalid insert: tree is NULL\n");
-        return;
+        return false;
     }
     RBnode* new_node = create_rb_node(value, RED);
     if (!new_node) exit(1);
     if (!tree->_root) { // if tree is empty
         tree->_root = new_node;
-        return;
+        return true;
     }
     RBnode* parent_node = _find_insertion_point(tree->_root, value);
     if (!parent_node) { // Will only occur when value is a duplicate
         free(new_node);
-        return;
+        return false;
     }; 
     int dir = parent_node->_key > new_node->_key ? LEFT : RIGHT;
     new_node->_parent = parent_node;
     parent_node->_child[dir] = new_node; 
     while (parent_node) {
-        if (parent_node->_color == BLACK) return; // no red property violation
+        if (parent_node->_color == BLACK) return true; // no red property violation
         RBnode* grandparent_node = parent_node->_parent;
         if (!grandparent_node) { // parent is root and red
             parent_node->_color = BLACK;
-            return;
+            return true;
         }
         dir = grandparent_node->_left == parent_node ? LEFT : RIGHT;
         RBnode* uncle = grandparent_node->_child[1 - dir];
@@ -129,7 +129,7 @@ void insert(RBtree* tree, int value) {
             rotate_dir_root(tree, grandparent_node, 1 - dir);
             parent_node->_color = BLACK;
             grandparent_node->_color = RED;
-            return;
+            return true;
         }
         // both parent and uncle are red
         // make parent and uncle black and grandparent red, then grandparent becomes the new_node
@@ -139,6 +139,7 @@ void insert(RBtree* tree, int value) {
         new_node = grandparent_node; 
         parent_node = grandparent_node->_parent;
     } 
+    return true;
 }
 
 void case_d6(RBtree* tree, RBnode* parent, RBnode* sibling, RBnode* distant_nephew, int dir) {
@@ -148,11 +149,11 @@ void case_d6(RBtree* tree, RBnode* parent, RBnode* sibling, RBnode* distant_neph
     distant_nephew->_color = BLACK; 
 }
 
-void delete_node(RBtree* tree, int target) {
-    if (!tree) return;
+bool rb_delete_node(RBtree* tree, int target) {
+    if (!tree) return false;
 
-    RBnode* node_to_remove = search(tree, target);
-    if (!node_to_remove) return;
+    RBnode* node_to_remove = rb_search(tree, target);
+    if (!node_to_remove) return false;
 
     if (node_to_remove->_left && node_to_remove->_right) { // if two non-NULL children
         // find the inorder successor of the node, switch keys and delete inorder successor
@@ -162,9 +163,9 @@ void delete_node(RBtree* tree, int target) {
             inorder_successor = inorder_successor->_left;
         }
         int key = inorder_successor->_key;
-        delete_node(tree, key);
+        rb_delete_node(tree, key);
         node_to_remove->_key = key;
-        return;
+        return true;
     }
     if (node_to_remove->_left || node_to_remove->_right) { // if it has only one child
         // replace the parent with the child
@@ -178,13 +179,13 @@ void delete_node(RBtree* tree, int target) {
             tree->_root = node_to_remove->_child[dir];
         }
         free(node_to_remove);
-        return;
+        return true;
     }
     // from here on, the node has no children
     if (tree->_root == node_to_remove) {
         tree->_root = NULL;
         free(node_to_remove);
-        return;
+        return true;
     }
     if (node_to_remove->_color == RED) {
         // red leaf
@@ -192,7 +193,7 @@ void delete_node(RBtree* tree, int target) {
         int dir = node_to_remove->_parent->_left == node_to_remove ? LEFT : RIGHT;
         node_to_remove->_parent->_child[dir] = NULL;
         free(node_to_remove);
-        return;
+        return true;
     }
     // node has no children and is black
     // if we simply delete it, it will violate the black depth property
@@ -218,7 +219,7 @@ void delete_node(RBtree* tree, int target) {
         } // sibling is black
         if (distant_nephew && distant_nephew->_color == RED) {
             case_d6(tree, parent, sibling, distant_nephew, dir);
-            return;
+            return true;
         } // sibling is black, distant nephew is black
         if (close_nephew && close_nephew->_color == RED) {
             rotate_dir_root(tree, sibling, 1 - dir);
@@ -228,12 +229,12 @@ void delete_node(RBtree* tree, int target) {
             sibling = close_nephew;
 
             case_d6(tree, parent, sibling, distant_nephew, dir);
-            return;
+            return true;
         } // sibling, close_nephew, distant_nephew are black
         if (parent->_color == RED) {
             sibling->_color = RED;
             parent->_color = BLACK;
-            return;
+            return true;
         } // parent, sibling, close_nephew, distant_nephew are black
 
         sibling->_color = RED;
@@ -243,4 +244,5 @@ void delete_node(RBtree* tree, int target) {
             dir = parent->_left == node_to_remove ? LEFT : RIGHT;
         }
     }
+    return true;
 }

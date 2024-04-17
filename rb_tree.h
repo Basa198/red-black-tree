@@ -1,6 +1,8 @@
 #ifndef RB_TREE
 #define RB_TREE
 
+#include <stdbool.h>
+
 typedef enum rb_color { BLACK, RED } rb_color;
 
 typedef struct RBnode {
@@ -22,8 +24,8 @@ typedef struct RBtree {
 RBnode* create_rb_node(int key, rb_color color);
 RBtree* create_rb_tree();
 void free_rb_tree(RBtree* tree);
-void insert(RBtree* tree, int value);
-RBnode* search(RBtree* tree, int target);
-void delete_node(RBtree* tree, int target);
+bool rb_insert(RBtree* tree, int value);
+RBnode* rb_search(RBtree* tree, int target);
+bool rb_delete_node(RBtree* tree, int target);
 
 #endif

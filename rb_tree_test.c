@@ -53,7 +53,6 @@ bool is_red_black(RBtree* tree) {
     if (!tree) return true;
     if (!_red_property(tree->_root)) return false;
     int height = 0;
-    printf("A\n");
     if (!_black_depth(tree->_root, &height)) return false;
     // int shortest_path = find_shortest_path(tree->_root);
     // int longest_path = find_longest_path(tree->_root);
@@ -95,84 +94,84 @@ void test_free_rb_tree() {
 
     // free a tree with one node
     RBtree* tree2 = create_rb_tree();
-    insert(tree2, 10);
+    rb_insert(tree2, 10);
     free_rb_tree(tree2);
 
     //free a tree with multiple nodes
     RBtree* tree3 = create_rb_tree();
-    insert(tree3, 1);
-    insert(tree3, 2);
-    insert(tree3, 3);
-    insert(tree3, 4);
+    rb_insert(tree3, 1);
+    rb_insert(tree3, 2);
+    rb_insert(tree3, 3);
+    rb_insert(tree3, 4);
     free_rb_tree(tree3);
 }
 
-void test_insert() {
+void test_rb_insert() {
     RBtree* tree = create_rb_tree();
-    insert(tree, 1);
+    rb_insert(tree, 1);
     CU_ASSERT_EQUAL(tree->_root->_key, 1);
     CU_ASSERT_TRUE(is_red_black(tree));
-    insert(tree, 2);
-    CU_ASSERT_EQUAL(search(tree, 2)->_key, 2);
-    CU_ASSERT_EQUAL(search(tree, 1)->_key, 1);
+    rb_insert(tree, 2);
+    CU_ASSERT_EQUAL(rb_search(tree, 2)->_key, 2);
+    CU_ASSERT_EQUAL(rb_search(tree, 1)->_key, 1);
     CU_ASSERT_TRUE(is_red_black(tree));
 
-    insert(tree, 3);
-    insert(tree, 4);
-    insert(tree, 5);
+    rb_insert(tree, 3);
+    rb_insert(tree, 4);
+    rb_insert(tree, 5);
     CU_ASSERT_TRUE(is_red_black(tree));
 
     free_rb_tree(tree);
 }
 
-void test_search() {
+void test_rb_search() {
     RBtree* tree = create_rb_tree();
-    CU_ASSERT_PTR_NULL(search(tree, 1));
-    insert(tree, 1);
-    CU_ASSERT_EQUAL(search(tree, 1), tree->_root);
-    CU_ASSERT_PTR_NULL(search(tree, 2));
-    insert(tree, 2);
-    CU_ASSERT_EQUAL(search(tree, 2)->_key, 2);
+    CU_ASSERT_PTR_NULL(rb_search(tree, 1));
+    rb_insert(tree, 1);
+    CU_ASSERT_EQUAL(rb_search(tree, 1), tree->_root);
+    CU_ASSERT_PTR_NULL(rb_search(tree, 2));
+    rb_insert(tree, 2);
+    CU_ASSERT_EQUAL(rb_search(tree, 2)->_key, 2);
     free_rb_tree(tree);
 }
 
-void test_delete_node() {
+void test_rb_delete_node() {
     RBtree* tree = create_rb_tree();
     // should not crash
-    delete_node(tree, 1);
-    insert(tree, 1);
-    delete_node(tree, 1);
+    rb_delete_node(tree, 1);
+    rb_insert(tree, 1);
+    rb_delete_node(tree, 1);
     CU_ASSERT_PTR_NULL(tree->_root);;
-    CU_ASSERT_PTR_NULL(search(tree, 1));
+    CU_ASSERT_PTR_NULL(rb_search(tree, 1));
 
-    insert(tree, 1);
-    insert(tree, 2);
-    insert(tree, 3);
-    insert(tree, 4);
-    insert(tree, 5);
-    insert(tree, 6);
-    insert(tree, 0);
-    insert(tree, -5);
-    delete_node(tree, 3);
-    CU_ASSERT_PTR_NULL(search(tree, 3));
+    rb_insert(tree, 1);
+    rb_insert(tree, 2);
+    rb_insert(tree, 3);
+    rb_insert(tree, 4);
+    rb_insert(tree, 5);
+    rb_insert(tree, 6);
+    rb_insert(tree, 0);
+    rb_insert(tree, -5);
+    rb_delete_node(tree, 3);
+    CU_ASSERT_PTR_NULL(rb_search(tree, 3));
     CU_ASSERT_TRUE(is_red_black(tree));
-    delete_node(tree, 2);
+    rb_delete_node(tree, 2);
     CU_ASSERT_TRUE(is_red_black(tree));
-    CU_ASSERT_PTR_NULL(search(tree, 2));
-    delete_node(tree, 1);
-    CU_ASSERT_PTR_NULL(search(tree, 1));
+    CU_ASSERT_PTR_NULL(rb_search(tree, 2));
+    rb_delete_node(tree, 1);
+    CU_ASSERT_PTR_NULL(rb_search(tree, 1));
     CU_ASSERT_TRUE(is_red_black(tree));
-    delete_node(tree, 0);
-    CU_ASSERT_PTR_NULL(search(tree, 0));
+    rb_delete_node(tree, 0);
+    CU_ASSERT_PTR_NULL(rb_search(tree, 0));
     CU_ASSERT_TRUE(is_red_black(tree));
-    delete_node(tree, -5);
-    CU_ASSERT_PTR_NULL(search(tree, -5));
+    rb_delete_node(tree, -5);
+    CU_ASSERT_PTR_NULL(rb_search(tree, -5));
     CU_ASSERT_TRUE(is_red_black(tree));
-    delete_node(tree, 5);
-    CU_ASSERT_PTR_NULL(search(tree, 5));
+    rb_delete_node(tree, 5);
+    CU_ASSERT_PTR_NULL(rb_search(tree, 5));
     CU_ASSERT_TRUE(is_red_black(tree));
-    delete_node(tree, 6);
-    CU_ASSERT_PTR_NULL(search(tree, 6));
+    rb_delete_node(tree, 6);
+    CU_ASSERT_PTR_NULL(rb_search(tree, 6));
     CU_ASSERT_TRUE(is_red_black(tree));
 
     free_rb_tree(tree);
@@ -186,9 +185,9 @@ int main() {
     CU_add_test(suite, "test_create_rb_tree", test_create_rb_tree);
     CU_add_test(suite, "test_free_rb_tree", test_free_rb_tree);
     CU_add_test(suite, "test_free_rb_tree", test_free_rb_tree);
-    CU_add_test(suite, "test_insert", test_insert);
-    CU_add_test(suite, "test_search", test_search);
-    CU_add_test(suite, "test_delete_node", test_delete_node);
+    CU_add_test(suite, "test_rb_insert", test_rb_insert);
+    CU_add_test(suite, "test_rb_search", test_rb_search);
+    CU_add_test(suite, "test_rb_delete_node", test_rb_delete_node);
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
